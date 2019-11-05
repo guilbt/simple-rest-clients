@@ -4,6 +4,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,11 +14,19 @@ public class SimpleRestClient {
     private final String server;
     private final RestTemplate rest;
     private final HttpHeaders headers;
+    private static final int defaultTimeout = 60000;
 
-    public SimpleRestClient(String server, Map<String, String> addHeaders) {
+    private SimpleClientHttpRequestFactory getClientHttpRequestFactory(int timeoutinMillis) {
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(timeoutinMillis);
+        clientHttpRequestFactory.setReadTimeout(timeoutinMillis);
+        return clientHttpRequestFactory;
+    }
+
+    public SimpleRestClient(String server, int timeoutInMillis, Map<String, String> addHeaders) {
         Assert.notNull(server, "Server parameter can't be null");
         this.server = server;
-        this.rest = new RestTemplate();
+        this.rest = new RestTemplate(getClientHttpRequestFactory(timeoutInMillis));
         this.headers = new HttpHeaders();
         this.headers.add("Content-Type", "application/json");
         this.headers.add("Accept", "application/json");
@@ -28,16 +37,20 @@ public class SimpleRestClient {
         }
     }
 
+    public SimpleRestClient(String server, Map<String, String> addHeaders) {
+        this(server, defaultTimeout, addHeaders);
+    }
+
     public SimpleRestClient(Map<String, String> addHeaders) {
-        this("", addHeaders);
+        this("", defaultTimeout, addHeaders);
     }
 
     public SimpleRestClient() {
-        this("", null);
+        this("", defaultTimeout, null);
     }
 
     public SimpleRestClient(String server) {
-        this(server, null);
+        this(server, defaultTimeout, null);
     }
 
     public <E> ResponseEntity<E> get(String uri, Class<E> returnObjectClass, HttpHeaders addHeaders) {

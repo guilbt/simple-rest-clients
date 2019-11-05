@@ -27,6 +27,12 @@ public class SimpleRestClientTest {
         Assert.assertNotNull(drc);
     }
 
+    @Test
+    public void testInstantiationWithAServer() {
+        SimpleRestClient drc = new SimpleRestClient("anyUrl");
+        Assert.assertNotNull(drc);
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testInstantiationWithNullServer() {
         String nullTestString = null;
